@@ -1,6 +1,5 @@
 package ru.geekbrains.march.chat.client;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -15,7 +14,10 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import ru.geekbrains.march.chat.server.ServerApp;
+
 public class Controller implements Initializable {
+
     @FXML
     TextField msgField;
 
@@ -33,10 +35,19 @@ public class Controller implements Initializable {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
             Thread t = new Thread(() -> {
+                int msgCount = 0;
+
                 try {
                     while (true) {
                         String msg = in.readUTF();
-                        msgArea.appendText(msg + "\n");
+                        if (msg.length() > 0) {
+                            if (msg.equals(ServerApp.COMMAND_STAT)) {
+                                msg = "Количество сообщений - " + msgCount;
+                            } else {
+                                msgCount++;
+                            }
+                            msgArea.appendText(msg + "\n");
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
