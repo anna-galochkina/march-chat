@@ -1,13 +1,15 @@
 package ru.geekbrains.march.chat.server;
 
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerApp {
+
+    public static final String COMMAND_STAT = "/stat";
+
     // Домашнее задание:
     // 1. Разберитесь с кодом, все вопросы можно писать в комментариях к дз
     // 2. Пусть сервер подсчитывает количество сообщений от клиента
@@ -22,10 +24,33 @@ public class ServerApp {
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             System.out.println("Клиент подключился");
 
+//            п3 если нужно общее количеcтво сообщений без учета подсчета по каждому отдельному клиенту, то код ниже
+//
+//            int msgCount = 0;
+//            while (true) {
+//                String msg = in.readUTF().trim();
+//                if (msg.length() > 0) {
+//                    if (!msg.toLowerCase().equals(COMMAND_STAT)) {
+//                        msg = "ECHO: " + msg;
+//                        msgCount++;
+//                    } else {
+//                        msg = "Количество сообщений - " + msgCount;
+//                    }
+//                    out.writeUTF(msg);
+//                    System.out.println(msg);
+//                }
+//            }
+
+
+//            иначе этот + фикс в контроллере, чтобы считать сообщения у каждого клиента по отдельности
+
             while (true) {
-                String msg = in.readUTF();
-                System.out.println(msg);
-                out.writeUTF("ECHO: " + msg);
+                String msg = in.readUTF().trim();
+                if (msg.length() > 0) {
+                    msg = !msg.toLowerCase().equals(COMMAND_STAT) ? "ECHO: " + msg : COMMAND_STAT;
+                    out.writeUTF(msg);
+                    System.out.println(msg);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -12,7 +12,7 @@
 <VBox fx:controller="ru.geekbrains.march.chat.client.Controller" xmlns:fx="http://javafx.com/fxml" alignment="center">
     <TextArea fx:id="msgArea" VBox.vgrow="ALWAYS" editable="false"/>
     <HBox>
-        <TextField fx:id="msgField" HBox.hgrow="ALWAYS" promptText="Введите сообщение"/>
+        <TextField fx:id="msgField" onAction="#sendMsg" HBox.hgrow="ALWAYS" promptText="Введите сообщение"/>
         <Button text="Отправить" onAction="#sendMsg"/>
     </HBox>
 </VBox>
