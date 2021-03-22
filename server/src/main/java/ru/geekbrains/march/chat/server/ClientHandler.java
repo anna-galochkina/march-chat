@@ -23,14 +23,13 @@ public class ClientHandler {
         this.out = new DataOutputStream(socket.getOutputStream());
         new Thread(() -> {
             try {
-                // Цикл авторизации
-                while (true) {
+                while (true) { // Цикл авторизации
                     String msg = in.readUTF();
                     if (msg.startsWith("/login ")) {
                         // login Bob
                         String usernameFromLogin = msg.split("\\s")[1];
 
-                        if (server.isNickBusy(usernameFromLogin)) {
+                        if (server.isUserOnline(usernameFromLogin)) {
                             sendMessage("/login_failed Current nickname is already used");
                             continue;
                         }
@@ -41,26 +40,14 @@ public class ClientHandler {
                         break;
                     }
                 }
-                // Цикл общения с клиентом
-                while (true) {
+
+                while (true) { // Цикл общения с клиентом
                     String msg = in.readUTF();
-                    if (msg.startsWith("/who_am_i")) {
-                        sendMessage(username);
-                    } else if (msg.startsWith("/exit")) {
-                        disconnect();
-                        break;
-                    } else if (msg.startsWith("/w ")) {
-                        String[] usernameFromMsg = msg.split("\\s", 3);
-                        if (usernameFromMsg.length == 3) {
-                            for (ClientHandler clientHandler : server.getClients()) {
-                                if (clientHandler.getUsername().equals(usernameFromMsg[1])) {
-                                    clientHandler.sendMessage(username + ": " + usernameFromMsg[2]);
-                                }
-                            }
-                        }
-                    } else {
-                        server.broadcastMessage(username + ": " + msg);
+                    if (msg.startsWith("/")) {
+                        executeCommand(msg);
+                        continue;
                     }
+                    server.broadcastMessage(username + ": " + msg);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -70,8 +57,21 @@ public class ClientHandler {
         }).start();
     }
 
-    public void sendMessage(String message) throws IOException {
-        out.writeUTF(message);
+    private void executeCommand(String cmd) {
+        // /w Bob Hello, Bob!!!
+        if (cmd.startsWith("/w ")) {
+            String[] tokens = cmd.split("\\s", 3);
+            server.sendPrivateMessage(this, tokens[1], tokens[2]);
+            return;
+        }
+    }
+
+    public void sendMessage(String message) {
+        try {
+            out.writeUTF(message);
+        } catch (IOException e) {
+            disconnect();
+        }
     }
 
     public void disconnect() {
