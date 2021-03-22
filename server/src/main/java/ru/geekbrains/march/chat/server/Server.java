@@ -8,6 +8,7 @@ import java.util.List;
 
 public class Server {
     private int port;
+
     private List<ClientHandler> clients;
 
     public Server(int port) {
@@ -47,5 +48,9 @@ public class Server {
             }
         }
         return false;
+    }
+
+    public List<ClientHandler> getClients() {
+        return clients;
     }
 }

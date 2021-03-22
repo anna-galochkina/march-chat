@@ -44,7 +44,23 @@ public class ClientHandler {
                 // Цикл общения с клиентом
                 while (true) {
                     String msg = in.readUTF();
-                    server.broadcastMessage(username + ": " + msg);
+                    if (msg.startsWith("/who_am_i")) {
+                        sendMessage(username);
+                    } else if (msg.startsWith("/exit")) {
+                        disconnect();
+                        break;
+                    } else if (msg.startsWith("/w ")) {
+                        String[] usernameFromMsg = msg.split("\\s", 3);
+                        if (usernameFromMsg.length == 3) {
+                            for (ClientHandler clientHandler : server.getClients()) {
+                                if (clientHandler.getUsername().equals(usernameFromMsg[1])) {
+                                    clientHandler.sendMessage(username + ": " + usernameFromMsg[2]);
+                                }
+                            }
+                        }
+                    } else {
+                        server.broadcastMessage(username + ": " + msg);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
