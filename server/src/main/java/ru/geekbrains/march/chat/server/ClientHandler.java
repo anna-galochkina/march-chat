@@ -62,7 +62,17 @@ public class ClientHandler {
         if (cmd.startsWith("/w ")) {
             String[] tokens = cmd.split("\\s", 3);
             server.sendPrivateMessage(this, tokens[1], tokens[2]);
-            return;
+        } else if (cmd.startsWith("/who_am_i")) {
+            sendMessage(username);
+        } else if (cmd.startsWith("/exit")) {
+            disconnect();
+        } else if (cmd.startsWith("/change_nick ")) {
+            String[] tokens = cmd.split("\\s", 2);
+            if (tokens.length == 2) {
+                username = tokens[1];
+                server.broadcastClientsList();;
+                sendMessage("Никнейм успешно изменен: " + username);
+            }
         }
     }
 

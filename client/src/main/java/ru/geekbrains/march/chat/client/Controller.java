@@ -147,4 +147,8 @@ public class Controller implements Initializable {
             e.printStackTrace();
         }
     }
+
+    public void logoutBtn() {
+        disconnect();
+    }
 }
