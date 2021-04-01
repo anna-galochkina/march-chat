@@ -20,11 +20,11 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider {
     private List<User> users;
 
     public InMemoryAuthenticationProvider() {
-        this.users = new ArrayList<>(Arrays.asList(
-                new User("Bob", "100", "MegaBob"),
-                new User("Jack", "100", "Mystic"),
-                new User("John", "100", "Wizard")
-        ));
+//        this.users = new ArrayList<>(Arrays.asList(
+//                new User("Bob", "100", "MegaBob"),
+//                new User("Jack", "100", "Mystic"),
+//                new User("John", "100", "Wizard")
+//        ));
     }
 
     @Override
