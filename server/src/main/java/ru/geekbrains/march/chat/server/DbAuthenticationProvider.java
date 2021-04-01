@@ -27,7 +27,6 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
             fillTable();
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
             disconnect();
         }
     }
@@ -56,18 +55,14 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public String getNicknameByLoginAndPassword(String login, String password) {
-        try {
-            ps = connection.prepareStatement("SELECT nickname FROM users WHERE login = ? AND password = ?;");
-            ps.setString(1, login);
-            ps.setString(2, password);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("nickname");
-                }
+    public String getNicknameByLoginAndPassword(String login, String password) throws SQLException {
+        ps = connection.prepareStatement("SELECT nickname FROM users WHERE login = ? AND password = ?;");
+        ps.setString(1, login);
+        ps.setString(2, password);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("nickname");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -114,8 +109,8 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
         if (connection != null) {
             try {
                 connection.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }

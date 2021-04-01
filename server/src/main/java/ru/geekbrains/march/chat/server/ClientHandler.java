@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 
 public class ClientHandler {
     private Server server;
@@ -34,10 +35,13 @@ public class ClientHandler {
                         }
                         String login = tokens[1];
                         String password = tokens[2];
+                        sendMessage(login);
+                        sendMessage(password);
+
 
                         String userNickname = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
                         if (userNickname == null) {
-                            sendMessage("/login_failed Введен некорретный логин/пароль");
+                            sendMessage("/login_failed Введен некорре4тный логин/пароль");
                             continue;
                         }
                         if (server.isUserOnline(userNickname)) {
@@ -59,7 +63,7 @@ public class ClientHandler {
                     }
                     server.broadcastMessage(username + ": " + msg);
                 }
-            } catch (IOException e) {
+            } catch (IOException | SQLException e) {
                 e.printStackTrace();
             } finally {
                 disconnect();
