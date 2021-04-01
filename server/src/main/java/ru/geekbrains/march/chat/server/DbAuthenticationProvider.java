@@ -33,9 +33,9 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
         try (ResultSet rs = ps.executeQuery()) {
             if (!rs.next()) {
                 connection.setAutoCommit(false);
-                stmt.addBatch(String.format("insert into users (login, password, nickname) values ('%s', '%s', '%s');", "John", "pass1", "John1"));
-                stmt.addBatch(String.format("insert into users (login, password, nickname) values ('%s', '%s', '%s');", "Max", "pass2", "Max1"));
-                stmt.addBatch(String.format("insert into users (login, password, nickname) values ('%s', '%s', '%s');", "Bob", "pass3", "Bob1"));
+                stmt.addBatch(String.format("INSERT INTO users (login, password, nickname) VALUES ('%s', '%s', '%s');", "John", "pass1", "John1"));
+                stmt.addBatch(String.format("INSERT INTO users (login, password, nickname) VALUES ('%s', '%s', '%s');", "Max", "pass2", "Max1"));
+                stmt.addBatch(String.format("INSERT INTO users (login, password, nickname) VALUES ('%s', '%s', '%s');", "Bob", "pass3", "Bob1"));
                 stmt.executeBatch();
                 connection.commit();
             }
