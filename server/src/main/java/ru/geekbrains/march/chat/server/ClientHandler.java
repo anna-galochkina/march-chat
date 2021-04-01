@@ -71,7 +71,7 @@ public class ClientHandler {
         }).start();
     }
 
-    private void executeCommand(String cmd) {
+    private void executeCommand(String cmd) throws SQLException {
         // /w Bob Hello, Bob!!!
         if (cmd.startsWith("/w ")) {
             String[] tokens = cmd.split("\\s+", 3);
@@ -91,11 +91,14 @@ public class ClientHandler {
                 return;
             }
             String newNickname = tokens[1];
-            if (server.isUserOnline(newNickname)) {
+            if (server.getAuthenticationProvider().isNicknameBusy(newNickname)) {
                 sendMessage("Server: Такой никнейм уже занят");
                 return;
             }
-            server.getAuthenticationProvider().changeNickname(username, newNickname);
+            if (!server.getAuthenticationProvider().changeNickname(username, newNickname)) {
+                sendMessage("Server: Не удалось сменить никнейм");
+                return;
+            }
             username = newNickname;
             sendMessage("Server: Вы изменили никнейм на " + newNickname);
             server.broadcastClientsList();

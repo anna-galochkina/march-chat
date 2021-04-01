@@ -68,16 +68,20 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public boolean changeNickname(String oldNickname, String newNickname) {
-        try {
-            ps = connection.prepareStatement("UPDATE users SET nickname = ? WHERE nickname = ?;");
-            ps.setString(1, newNickname);
-            ps.setString(2, oldNickname);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public boolean changeNickname(String oldNickname, String newNickname) throws SQLException {
+        ps = connection.prepareStatement("UPDATE users SET nickname = ? WHERE nickname = ?;");
+        ps.setString(1, newNickname);
+        ps.setString(2, oldNickname);
+        return ps.executeUpdate() > 0;
+    }
+
+    @Override
+    public boolean isNicknameBusy(String nickname) throws SQLException {
+        ps = connection.prepareStatement("SELECT id FROM users WHERE nickname = ?");
+        ps.setString(1, nickname);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
         }
-        return false;
     }
 
     public static void connect() {
