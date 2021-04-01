@@ -41,7 +41,7 @@ public class ClientHandler {
 
                         String userNickname = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
                         if (userNickname == null) {
-                            sendMessage("/login_failed Введен некорре4тный логин/пароль");
+                            sendMessage("/login_failed Введен некорректный логин/пароль");
                             continue;
                         }
                         if (server.isUserOnline(userNickname)) {

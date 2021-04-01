@@ -8,18 +8,6 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
     private static Statement stmt;
     private static PreparedStatement ps;
 
-    private class User {
-        private String login;
-        private String password;
-        private String nickname;
-
-        public User(String login, String password, String nickname) {
-            this.login = login;
-            this.password = password;
-            this.nickname = nickname;
-        }
-    }
-
     public DbAuthenticationProvider() {
         try {
             connect();
