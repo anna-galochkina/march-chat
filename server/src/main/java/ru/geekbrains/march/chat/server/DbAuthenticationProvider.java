@@ -72,6 +72,24 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
         }
     }
 
+    @Override
+    public int getIdByLoginAndPassword(String login, String password) {
+        try {
+            ps = connection.prepareStatement("SELECT id FROM users WHERE login = ? AND password = ?;");
+            ps.setString(1, login);
+            ps.setString(2, password);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public static void connect() {
         try {
             Class.forName("org.sqlite.JDBC");

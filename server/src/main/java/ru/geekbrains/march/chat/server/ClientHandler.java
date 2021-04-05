@@ -2,6 +2,7 @@ package ru.geekbrains.march.chat.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -12,6 +13,7 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     private String username;
+    private int userId;
 
     public String getUsername() {
         return username;
@@ -38,7 +40,6 @@ public class ClientHandler {
                         sendMessage(login);
                         sendMessage(password);
 
-
                         String userNickname = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
                         if (userNickname == null) {
                             sendMessage("/login_failed Введен некорректный логин/пароль");
@@ -48,8 +49,10 @@ public class ClientHandler {
                             sendMessage("/login_failed Учетная запись уже используется");
                             continue;
                         }
+                        userId = server.getAuthenticationProvider().getIdByLoginAndPassword(login, password);
                         username = userNickname;
-                        sendMessage("/login_ok " + username);
+                        sendMessage("/user_id " + userId);
+                        sendMessage("/login_ok " + username + " " + userId);
                         server.subscribe(this);
                         break;
                     }
@@ -108,8 +111,21 @@ public class ClientHandler {
     public void sendMessage(String message) {
         try {
             out.writeUTF(message);
+            log(message);
         } catch (IOException e) {
             disconnect();
+        }
+    }
+
+    public void log(String message) {
+        if (!message.startsWith("/") && userId > 0) {
+            try (FileWriter writer = new FileWriter(userId + "_log.txt", true)) {
+                writer.write(message);
+                writer.append('\n');
+                writer.flush();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
         }
     }
 
