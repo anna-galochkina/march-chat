@@ -18,7 +18,7 @@ public class Server {
     public Server(int port) {
         this.port = port;
         this.clients = new ArrayList<>();
-        this.authenticationProvider = new InMemoryAuthenticationProvider();
+        this.authenticationProvider = new DbAuthenticationProvider();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Сервер запущен на порту " + port);
             while (true) {

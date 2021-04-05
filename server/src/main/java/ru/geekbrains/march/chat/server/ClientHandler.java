@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 
 public class ClientHandler {
     private Server server;
@@ -34,10 +35,13 @@ public class ClientHandler {
                         }
                         String login = tokens[1];
                         String password = tokens[2];
+                        sendMessage(login);
+                        sendMessage(password);
+
 
                         String userNickname = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
                         if (userNickname == null) {
-                            sendMessage("/login_failed Введен некорретный логин/пароль");
+                            sendMessage("/login_failed Введен некорректный логин/пароль");
                             continue;
                         }
                         if (server.isUserOnline(userNickname)) {
@@ -59,7 +63,7 @@ public class ClientHandler {
                     }
                     server.broadcastMessage(username + ": " + msg);
                 }
-            } catch (IOException e) {
+            } catch (IOException | SQLException e) {
                 e.printStackTrace();
             } finally {
                 disconnect();
@@ -67,7 +71,7 @@ public class ClientHandler {
         }).start();
     }
 
-    private void executeCommand(String cmd) {
+    private void executeCommand(String cmd) throws SQLException {
         // /w Bob Hello, Bob!!!
         if (cmd.startsWith("/w ")) {
             String[] tokens = cmd.split("\\s+", 3);
@@ -87,11 +91,14 @@ public class ClientHandler {
                 return;
             }
             String newNickname = tokens[1];
-            if (server.isUserOnline(newNickname)) {
+            if (server.getAuthenticationProvider().isNicknameBusy(newNickname)) {
                 sendMessage("Server: Такой никнейм уже занят");
                 return;
             }
-            server.getAuthenticationProvider().changeNickname(username, newNickname);
+            if (!server.getAuthenticationProvider().changeNickname(username, newNickname)) {
+                sendMessage("Server: Не удалось сменить никнейм");
+                return;
+            }
             username = newNickname;
             sendMessage("Server: Вы изменили никнейм на " + newNickname);
             server.broadcastClientsList();
