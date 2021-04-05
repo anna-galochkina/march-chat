@@ -11,8 +11,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Controller implements Initializable {
     @FXML
@@ -34,6 +40,7 @@ public class Controller implements Initializable {
     private DataInputStream in;
     private DataOutputStream out;
     private String username;
+    private String userId;
 
     public void setUsername(String username) {
         this.username = username;
@@ -78,8 +85,12 @@ public class Controller implements Initializable {
                     // Цикл авторизации
                     while (true) {
                         String msg = in.readUTF();
+                        if (msg.startsWith("/user_id ")) {
+                            userId = msg.split("\\s")[1];
+                        }
                         if (msg.startsWith("/login_ok ")) {
                             setUsername(msg.split("\\s")[1]);
+                            userId = msg.split("\\s")[2];
                             break;
                         }
                         if (msg.startsWith("/login_failed ")) {
@@ -104,7 +115,7 @@ public class Controller implements Initializable {
                             }
                             continue;
                         }
-                        msgArea.appendText(msg + "\n");
+                        msgArea.setText(getLogData());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -116,6 +127,16 @@ public class Controller implements Initializable {
         } catch (IOException e) {
             showErrorAlert("Невозможно подключиться к серверу");
         }
+    }
+
+    public String getLogData() throws IOException {
+        if (userId != null && !userId.isEmpty()) {
+            Stream<String> lines = Files.lines(Paths.get(userId + "_log.txt"));
+            String data = lines.collect(Collectors.joining("\n"));
+            lines.close();
+            return data;
+        }
+        return null;
     }
 
     public void sendMsg() {
