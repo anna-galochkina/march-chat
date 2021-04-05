@@ -52,7 +52,7 @@ public class ClientHandler {
                         userId = server.getAuthenticationProvider().getIdByLoginAndPassword(login, password);
                         username = userNickname;
                         sendMessage("/user_id " + userId);
-                        sendMessage("/login_ok " + username + " " + userId);
+                        sendMessage("/login_ok " + username);
                         server.subscribe(this);
                         break;
                     }
