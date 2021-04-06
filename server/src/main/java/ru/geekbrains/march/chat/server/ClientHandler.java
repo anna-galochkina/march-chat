@@ -125,7 +125,7 @@ public class ClientHandler {
                     writer.append('\n');
                     writer.flush();
                 } catch (IOException ex) {
-                    throw new Exception("Server: Не удалось создать файл логов");
+                    throw new Exception("Server: Не удалось записать данные в файл логов");
                 }
             }
         } catch (Exception e) {

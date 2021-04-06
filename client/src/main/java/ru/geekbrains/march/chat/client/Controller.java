@@ -122,16 +122,26 @@ public class Controller implements Initializable {
         }
     }
 
-    public String getLogData() throws IOException {
-        File file = new File("log.txt");
-        if (!file.exists()) {
-            if (!file.createNewFile()) {
-                throw new IOException("Server: Не удалось создать файл логов");
+    public String getLogData() {
+        Stream<String> lines = null;
+        String data = "";
+        try {
+            File file = new File("log.txt");
+            if (!file.exists()) {
+                if (!file.createNewFile()) {
+                    throw new IOException("Server: Не удалось создать файл логов");
+                }
             }
+            lines = Files.lines(Paths.get("log.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        Stream<String> lines = Files.lines(Paths.get("log.txt"));
-        String data = lines.collect(Collectors.joining("\n"));
-        lines.close();
+
+        if (lines != null) {
+            data = lines.collect(Collectors.joining("\n"));
+            lines.close();
+        }
+
         return data;
     }
 
