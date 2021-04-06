@@ -8,6 +8,7 @@ import javafx.scene.layout.HBox;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
@@ -37,7 +38,6 @@ public class Controller implements Initializable {
     private DataInputStream in;
     private DataOutputStream out;
     private String username;
-    private String userId;
 
     public void setUsername(String username) {
         this.username = username;
@@ -82,12 +82,8 @@ public class Controller implements Initializable {
                     // Цикл авторизации
                     while (true) {
                         String msg = in.readUTF();
-                        if (msg.startsWith("/user_id ")) {
-                            userId = msg.split("\\s")[1];
-                        }
                         if (msg.startsWith("/login_ok ")) {
                             setUsername(msg.split("\\s")[1]);
-                            userId = msg.split("\\s")[2];
                             break;
                         }
                         if (msg.startsWith("/login_failed ")) {
@@ -127,13 +123,16 @@ public class Controller implements Initializable {
     }
 
     public String getLogData() throws IOException {
-        if (userId != null && !userId.isEmpty()) {
-            Stream<String> lines = Files.lines(Paths.get(userId + "_log.txt"));
-            String data = lines.collect(Collectors.joining("\n"));
-            lines.close();
-            return data;
+        File file = new File("log.txt");
+        if (!file.exists()) {
+            if (!file.createNewFile()) {
+                throw new IOException("Server: Не удалось создать файл логов");
+            }
         }
-        return null;
+        Stream<String> lines = Files.lines(Paths.get("log.txt"));
+        String data = lines.collect(Collectors.joining("\n"));
+        lines.close();
+        return data;
     }
 
     public void sendMsg() {

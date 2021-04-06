@@ -1,9 +1,6 @@
 package ru.geekbrains.march.chat.server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.sql.SQLException;
 
@@ -13,7 +10,6 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     private String username;
-    private int userId;
 
     public String getUsername() {
         return username;
@@ -49,9 +45,7 @@ public class ClientHandler {
                             sendMessage("/login_failed Учетная запись уже используется");
                             continue;
                         }
-                        userId = server.getAuthenticationProvider().getIdByLoginAndPassword(login, password);
                         username = userNickname;
-                        sendMessage("/user_id " + userId);
                         sendMessage("/login_ok " + username);
                         server.subscribe(this);
                         break;
@@ -65,6 +59,7 @@ public class ClientHandler {
                         continue;
                     }
                     server.broadcastMessage(username + ": " + msg);
+                    log(username + ": " + msg);
                 }
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
@@ -111,22 +106,32 @@ public class ClientHandler {
     public void sendMessage(String message) {
         try {
             out.writeUTF(message);
-            log(message);
         } catch (IOException e) {
             disconnect();
         }
     }
 
     public void log(String message) {
-        if (!message.startsWith("/") && userId > 0) {
-            try (FileWriter writer = new FileWriter(userId + "_log.txt", true)) {
-                writer.write(message);
-                writer.append('\n');
-                writer.flush();
-            } catch (IOException ex) {
-                System.out.println(ex.getMessage());
+        try {
+            if (!message.startsWith("/")) {
+                File file = new File("log.txt");
+                if (!file.exists()) {
+                    if (!file.createNewFile()) {
+                        throw new Exception("Server: Не удалось создать файл логов");
+                    }
+                }
+                try (FileWriter writer = new FileWriter("log.txt", true)) {
+                    writer.write(message);
+                    writer.append('\n');
+                    writer.flush();
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
             }
+        } catch (Exception e) {
+            sendMessage(e.getMessage());
         }
+
     }
 
     public void disconnect() {
