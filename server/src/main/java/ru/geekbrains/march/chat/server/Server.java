@@ -5,6 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     private int port;
@@ -19,28 +21,40 @@ public class Server {
         this.port = port;
         this.clients = new ArrayList<>();
         this.authenticationProvider = new DbAuthenticationProvider();
+        this.authenticationProvider.init();
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Сервер запущен на порту " + port);
             while (true) {
                 System.out.println("Ждем нового клиента..");
                 Socket socket = serverSocket.accept();
                 System.out.println("Клиент подключился");
-                new ClientHandler(this, socket);
+
+                //на один ClientHandler создается один поток, где происходит авторизация и общение, Thread Pool тут ничего не поменял
+                executorService.execute(new ClientHandler(this, socket));
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            this.authenticationProvider.shutdown();
+            executorService.shutdown();
         }
     }
 
     public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
-        broadcastMessage("Клиент " + clientHandler.getUsername() + " вошел в чат");
+        String message = "Клиент " + clientHandler.getUsername() + " вошел в чат";
+        broadcastMessage(message);
+        clientHandler.log(message);
         broadcastClientsList();
     }
 
     public synchronized void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
-        broadcastMessage("Клиент " + clientHandler.getUsername() + " вышел из чата");
+        String message = "Клиент " + clientHandler.getUsername() + " вышел из чата";
+        broadcastMessage(message);
+        clientHandler.log(message);
         broadcastClientsList();
     }
 
