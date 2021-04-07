@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.sql.SQLException;
 
-public class ClientHandler {
+public class ClientHandler implements Runnable {
     private Server server;
     private Socket socket;
     private DataInputStream in;
@@ -20,47 +20,14 @@ public class ClientHandler {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
+    }
+
+    @Override
+    public void run() {
         new Thread(() -> {
             try {
-                while (true) { // Цикл авторизации
-                    String msg = in.readUTF();
-                    if (msg.startsWith("/login ")) {
-                        // /login Bob 100xyz
-                        String[] tokens = msg.split("\\s+");
-                        if (tokens.length != 3) {
-                            sendMessage("/login_failed Введите имя пользователя и пароль");
-                            continue;
-                        }
-                        String login = tokens[1];
-                        String password = tokens[2];
-                        sendMessage(login);
-                        sendMessage(password);
-
-                        String userNickname = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
-                        if (userNickname == null) {
-                            sendMessage("/login_failed Введен некорректный логин/пароль");
-                            continue;
-                        }
-                        if (server.isUserOnline(userNickname)) {
-                            sendMessage("/login_failed Учетная запись уже используется");
-                            continue;
-                        }
-                        username = userNickname;
-                        sendMessage("/login_ok " + username);
-                        server.subscribe(this);
-                        break;
-                    }
-                }
-
-                while (true) { // Цикл общения с клиентом
-                    String msg = in.readUTF();
-                    if (msg.startsWith("/")) {
-                        executeCommand(msg);
-                        continue;
-                    }
-                    server.broadcastMessage(username + ": " + msg);
-                    log(username + ": " + msg);
-                }
+                authorize();
+                communication();
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
             } finally {
@@ -69,8 +36,45 @@ public class ClientHandler {
         }).start();
     }
 
+    private void communication() throws IOException, SQLException {
+        while (true) {
+            String msg = in.readUTF();
+            if (msg.startsWith("/")) {
+                executeCommand(msg);
+                continue;
+            }
+            server.broadcastMessage(username + ": " + msg);
+            log(username + ": " + msg);
+        }
+    }
+
+    private void authorize() throws IOException, SQLException {
+        while (true) {
+            String msg = in.readUTF();
+            if (msg.startsWith("/login ")) {
+                String[] tokens = msg.split("\\s+");
+                if (tokens.length != 3) {
+                    sendMessage("/login_failed Введите имя пользователя и пароль");
+                    continue;
+                }
+                String userNickname = server.getAuthenticationProvider().getNicknameByLoginAndPassword(tokens[1], tokens[2]);
+                if (userNickname == null) {
+                    sendMessage("/login_failed Введен некорректный логин/пароль");
+                    continue;
+                }
+                if (server.isUserOnline(userNickname)) {
+                    sendMessage("/login_failed Учетная запись уже используется");
+                    continue;
+                }
+                username = userNickname;
+                sendMessage("/login_ok " + username);
+                server.subscribe(this);
+                break;
+            }
+        }
+    }
+
     private void executeCommand(String cmd) throws SQLException {
-        // /w Bob Hello, Bob!!!
         if (cmd.startsWith("/w ")) {
             String[] tokens = cmd.split("\\s+", 3);
             if (tokens.length != 3) {
@@ -80,8 +84,6 @@ public class ClientHandler {
             server.sendPrivateMessage(this, tokens[1], tokens[2]);
             return;
         }
-
-        // /change_nick myNewNickname
         if (cmd.startsWith("/change_nick ")) {
             String[] tokens = cmd.split("\\s+");
             if (tokens.length != 2) {
